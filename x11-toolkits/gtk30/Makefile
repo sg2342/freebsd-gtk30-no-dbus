@@ -5,7 +5,7 @@
 
 PORTNAME=	gtk
 PORTVERSION=	3.22.15
-PORTREVISION?=	1
+PORTREVISION?=	2
 CATEGORIES=	x11-toolkits
 MASTER_SITES=	GNOME/sources/gtk+/${PORTVERSION:C/^([0-9]+\.[0-9]+).*/\1/}
 PKGNAMESUFFIX=	3
@@ -24,14 +24,12 @@ PORTSCOUT=	ignore:1
 .else
 PORTSCOUT=	limit:1,even
 
-BUILD_DEPENDS+=	at-spi2-atk>=0:accessibility/at-spi2-atk
 LIB_DEPENDS=	libepoxy.so:graphics/libepoxy \
 		libfontconfig.so:x11-fonts/fontconfig \
 		libfreetype.so:print/freetype2 \
 		libharfbuzz.so:print/harfbuzz
 RUN_DEPENDS+=	hicolor-icon-theme>=0:misc/hicolor-icon-theme \
-		adwaita-icon-theme>=0:x11-themes/adwaita-icon-theme \
-		at-spi2-atk>=0:accessibility/at-spi2-atk
+		adwaita-icon-theme>=0:x11-themes/adwaita-icon-theme
 
 USE_PERL5=	build
 USE_LDCONFIG=	yes
@@ -57,7 +55,7 @@ GLIB_SCHEMAS=	org.gtk.Demo.gschema.xml \
 		org.gtk.Settings.Debug.gschema.xml \
 		org.gtk.Settings.FileChooser.gschema.xml
 
-OPTIONS_DEFINE=	CUPS CLOUDPRINT COLORD DEBUG BROADWAY
+OPTIONS_DEFINE=	CUPS CLOUDPRINT COLORD DEBUG BROADWAY FAKEATK
 OPTIONS_DEFAULT=CUPS COLORD BROADWAY
 OPTIONS_SUB=	yes
 
@@ -75,6 +73,19 @@ CLOUDPRINT_DESC=	Cloud printing support
 CLOUDPRINT_CONFIGURE_ENABLE=	cloudprint
 CLOUDPRINT_LIB_DEPENDS=	librest-0.7.so:devel/librest \
 			libjson-glib-1.0.so:devel/json-glib
+
+FAKEATK_DESC=	disable ATK vi atk-bridge-fake in order to prevent the dbus dependency.
+
+
+.include <bsd.port.options.mk>
+.if ${PORT_OPTIONS:MFAKEATK}
+BUILD_DEPENDS+= ${LOCALBASE}/libdata/pkgconfig/atk-bridge-2.0.pc:accessibility/atk-bridge-fake
+RUN_DEPENDS+=	${LOCALBASE}/libdata/pkgconfig/atk-bridge-2.0.pc:accessibility/atk-bridge-fake
+.else
+BUILD_DEPENDS+=	at-spi2-atK>=0:accessibility/at-spi2-atk
+RUN_DEPENDS+=	at-spi2-atk>=0:accessibility/at-spi2-atk
+.endif
+
 
 # don't explicitly disable debug, this causes segfaults. ports r437293
 DEBUG_CONFIGURE_ON=	--enable-debug=yes
